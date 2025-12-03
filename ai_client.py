@@ -1,4 +1,4 @@
-# ai_client.py
+#OpenAI 클라이언트
 import os
 import streamlit as st
 from openai import OpenAI
