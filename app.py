@@ -270,6 +270,10 @@ elif st.session_state.step == "main_menu":
                 </div>
                 <div class="spec-hero-left-subtitle">
                     발표와 면접을 위한 AI 코칭을 하나의 서비스에서 제공합니다.
+
+
+
+                    
                 </div>
             </div>
         </div>
@@ -297,7 +301,7 @@ elif st.session_state.step == "main_menu":
             """,
             unsafe_allow_html=True,
         )
-        start_pres = st.button("발표 트랙 시작하기\n 1990원/월", key="go_pres", use_container_width=True)
+        start_pres = st.button("발표 트랙 시작하기", key="go_pres", use_container_width=True)
         if start_pres:
             go_to("pres_menu")
 
@@ -318,7 +322,7 @@ elif st.session_state.step == "main_menu":
             """,
             unsafe_allow_html=True,
         )
-        start_inter = st.button("면접 트랙 시작하기\n 7900/월", key="go_inter", use_container_width=True)
+        start_inter = st.button("면접 트랙 시작하기", key="go_inter", use_container_width=True)
         if start_inter:
             go_to("inter_upload")
 
