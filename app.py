@@ -5,7 +5,7 @@ import pandas as pd
 import plotly.express as px
 from datetime import datetime
 
-# auth.py에서 함수 임포트 (check_user_has_inquiry 추가됨)
+# auth.py에서 함수 임포트
 from auth import (
     init_db, 
     create_user, 
@@ -13,7 +13,7 @@ from auth import (
     get_all_users_df, 
     submit_inquiry, 
     get_all_inquiries,
-    check_user_has_inquiry  # [NEW]
+    check_user_has_inquiry
 )
 
 from pages.presentation import (
@@ -37,16 +37,21 @@ st.set_page_config(page_title="Spec-trum Pro", page_icon="🎙️", layout="wide
 # DB 초기화
 init_db()
 
-# ✅ 전역 스타일 주입
+# ✅ 전역 스타일 주입 (Manage App 및 툴바 완전 숨김)
 st.markdown("""
 <style>
-    /* UI 숨김 */
-    #MainMenu {visibility: hidden;}
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
-    .stDeployButton {display:none;}
+    /* 1. Streamlit 기본 UI 요소 숨기기 (Manage App, Deploy, 햄버거 메뉴 등) */
+    #MainMenu {visibility: hidden;}       /* 상단 햄버거 메뉴 숨김 */
+    header {visibility: hidden;}          /* 상단 헤더 바 숨김 */
+    footer {visibility: hidden;}          /* 하단 Footer 숨김 */
+    .stDeployButton {display:none;}       /* Deploy 버튼 숨김 */
+    
+    /* 툴바 및 상태 위젯 강력 숨김 */
+    [data-testid="stToolbar"] {visibility: hidden !important;} 
+    [data-testid="stDecoration"] {display: none;}
+    [data-testid="stStatusWidget"] {visibility: hidden;}
 
-    /* 레이아웃 */
+    /* 2. 레이아웃 조정 */
     .block-container {
         padding-top: 3rem;
         padding-bottom: 3rem;
@@ -54,7 +59,7 @@ st.markdown("""
         padding-right: 3rem;
     }
 
-    /* 입력창 스타일 */
+    /* 3. 입력창 스타일 (어두운 배경 적용) */
     .stTextInput input, .stTextArea textarea {
         background-color: #1F2937 !important;
         color: #F3F4F6 !important;
@@ -65,7 +70,7 @@ st.markdown("""
         border-radius: 0.5rem !important;
     }
     
-    /* 카드 스타일 */
+    /* 4. 카드 스타일 */
     .spec-card {
         background-color: #020617;
         padding: 1.25rem 1.5rem;
@@ -121,7 +126,7 @@ st.markdown("""
         height: 100%;
     }
     
-    /* 배지 스타일 */
+    /* 5. 배지 스타일 */
     .badge-free { background-color: #374151; color: #D1D5DB; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px; }
     .badge-pro { background-color: #3B82F6; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 8px; }
     .badge-admin { background-color: #DC2626; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 8px; }
@@ -150,9 +155,8 @@ if "interview_started" not in st.session_state: st.session_state.interview_start
 if "interview_total_seconds" not in st.session_state: st.session_state.interview_total_seconds = 0
 if "interview_start_time" not in st.session_state: st.session_state.interview_start_time = None
 
-# [NEW] 문의 다이얼로그 함수 (1회 제한 로직 적용)
+# 문의 다이얼로그 함수 (1회 제한 로직 적용)
 def render_inquiry_form():
-    # 1. 이미 문의했는지 체크
     has_submitted = check_user_has_inquiry(st.session_state.user)
     
     if has_submitted:
@@ -160,7 +164,6 @@ def render_inquiry_form():
         st.caption("추가 문의가 필요하신 경우 support@spectrum-pro.com 으로 메일 주세요.")
         return
 
-    # 2. 문의 내역이 없으면 폼 렌더링
     with st.form("inquiry_form", clear_on_submit=True):
         st.write("📩 **관리자에게 문의하기**")
         inquiry_content = st.text_area("문의 내용", placeholder="Enterprise 플랜 문의 또는 건의사항을 적어주세요.", height=150)
@@ -354,7 +357,7 @@ elif st.session_state.step == "main_menu":
             """<div class="spec-step-box"><strong style="color:#F3F4F6;">3. 실전 면접 시뮬레이션</strong><br/><br/>면접자료를 올리고, 실제 면접같은 모의면접을 진행해 보세요. 세션 이후 질문별 점수와 피드백 레포트를 받게 됩니다.</div>""", unsafe_allow_html=True)
 
 
-# [NEW] 관리자 대시보드
+# 관리자 대시보드
 elif st.session_state.step == "admin_dashboard":
     if st.session_state.user != ADMIN_ID:
         st.error("접근 권한이 없습니다.")
@@ -534,7 +537,7 @@ elif st.session_state.step == "pricing":
             </div>
             """, unsafe_allow_html=True)
         
-        # [MODIFIED] 문의하기 버튼 클릭 시 폼 렌더링 (1회 제한 적용)
+        # 문의하기 폼 (1회 제한)
         with st.expander("✉️ 문의 작성하기"):
             render_inquiry_form()
 
