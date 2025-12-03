@@ -216,10 +216,6 @@ elif st.session_state.step == "main_menu":
                 </div>
             </div>
             <div class="spec-hero-right spec-card-tight">
-                <div>
-                    <div class="spec-mini-metric-label">현재 세션</div>
-                    <div class="spec-mini-metric-value">Practice Mode</div>
-                    <div class="spec-mini-metric-desc">개인 연습용 비공개 세션입니다.</div>
                 </div>
                 <div style="margin-top:0.5rem;">
                     <div class="spec-mini-metric-label">추천 시작</div>
@@ -251,7 +247,7 @@ elif st.session_state.step == "main_menu":
             """,
             unsafe_allow_html=True,
         )
-        start_pres = st.button("발표 트랙 시작하기", key="go_pres", use_container_width=True)
+        start_pres = st.button("발표 트랙 시작하기\n 1990원/월", key="go_pres", use_container_width=True)
         if start_pres:
             go_to("pres_menu")
 
@@ -265,13 +261,14 @@ elif st.session_state.step == "main_menu":
                     생기부 PDF를 기반으로 실제 면접처럼 질문에 답하고, 질문별 평가를 레포트로 받아볼 수 있습니다.
                 </div>
                 <div class="spec-track-bullet">· 생기부 내용을 기반으로 한 맞춤형 질문 10개 생성</div>
-                <div class="spec-track-bullet">· 총 면접 시간 설정 + 질문별 녹음 & 평가</div>
-                <div class="spec-track-bullet">· 논리·진정성·자신감·전공 적합성 레이더 차트</div>
+                <div class="spec-track-bullet">· AI가 생성한 질문으로 모의면접 진행</div>
+                <div class="spec-track-bullet">· 총 면접 시간 설정 + 질문별 녹음 & 평가지 제공</div>
+                <div class="spec-track-bullet">· 논리·진정성·자신감·전공 적합성 레이더 차트 제공</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-        start_inter = st.button("면접 트랙 시작하기", key="go_inter", use_container_width=True)
+        start_inter = st.button("면접 트랙 시작하기\n 7900/월", key="go_inter", use_container_width=True)
         if start_inter:
             go_to("inter_upload")
 
@@ -291,7 +288,7 @@ elif st.session_state.step == "main_menu":
         st.markdown(
             """
             <div class="spec-step-box">
-                <strong>1단계 · 발표 감각 익히기</strong><br/>
+                <strong> 발표 감각 익히기</strong><br/>
                 간단한 주제를 정하고 발표 트랙에서 대본을 생성한 뒤,
                 본인 목소리로 1~2분 발표를 녹음해 보세요.
             </div>
@@ -302,7 +299,7 @@ elif st.session_state.step == "main_menu":
         st.markdown(
             """
             <div class="spec-step-box">
-                <strong>2단계 · 음성 피드백 확인</strong><br/>
+                <strong> 음성 피드백 확인</strong><br/>
                 속도·침묵·피치 변화 그래프를 보면서,
                 본인의 말하는 습관을 파악해 보고 개선 포인트를 찾습니다.
             </div>
@@ -313,8 +310,8 @@ elif st.session_state.step == "main_menu":
         st.markdown(
             """
             <div class="spec-step-box">
-                <strong>3단계 · 실전 면접 시뮬레이션</strong><br/>
-                생기부 PDF를 올리고, 실제 면접처럼 질문별로 답변을 녹음해 보세요.
+                <strong> 실전 면접 시뮬레이션</strong><br/>
+                학교생확기록부 PDF를 올리고, 실제 면접처럼 모의면접을 진행해 보세요.
                 세션이 끝나면 질문별 점수와 피드백이 정리된 레포트를 받게 됩니다.
             </div>
             """,
