@@ -7,7 +7,10 @@ import streamlit as st
 from openai import OpenAI
 import plotly.graph_objects as go
 import plotly.express as px
-import pdfplumber
+import PyPDF2
+from pdf2image import convert_from_bytes
+import pytesseract
+
 from collections import Counter
 import json
 
