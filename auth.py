@@ -31,18 +31,30 @@ def get_all_users_df():
 
 
 def init_db():
-    """users.db에 users 테이블 생성 (없으면)."""
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute(
-        """
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
+    
+    # 1. 사용자 테이블
+    c.execute('''
         CREATE TABLE IF NOT EXISTS users (
+            username TEXT PRIMARY KEY,
+            password TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # 2. 문의 내역 테이블 추가
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS inquiries (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL
-        );
-        """
-    )
+            username TEXT,
+            category TEXT,
+            content TEXT,
+            status TEXT DEFAULT 'Unread',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
     conn.commit()
     conn.close()
 
@@ -103,3 +115,31 @@ def authenticate_user(username: str, password: str) -> Tuple[bool, str]:
         return False, f"로그인 중 오류가 발생했습니다: {e}"
     finally:
         conn.close()
+
+# [NEW] 문의 사항 저장 함수
+def submit_inquiry(username, category, content):
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
+    try:
+        c.execute("INSERT INTO inquiries (username, category, content) VALUES (?, ?, ?)", 
+                  (username, category, content))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(e)
+        return False
+    finally:
+        conn.close()
+
+# [NEW] 관리자용: 모든 문의 내역 불러오기
+def get_all_inquiries():
+    conn = sqlite3.connect("users.db")
+    try:
+        df = pd.read_sql_query("SELECT * FROM inquiries ORDER BY created_at DESC", conn)
+    except:
+        df = pd.DataFrame(columns=["id", "username", "category", "content", "status", "created_at"])
+    finally:
+        conn.close()
+    return df
+
+
