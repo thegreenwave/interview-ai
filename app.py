@@ -275,6 +275,8 @@ elif st.session_state.step == "main_menu":
         unsafe_allow_html=True,
     )
 
+    st.markdown("---")
+    
     # ===== 트랙 선택 카드 =====
     col1, col2 = st.columns(2)
 
