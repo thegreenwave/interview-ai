@@ -1,7 +1,12 @@
 # app.py
 import streamlit as st
 import time
-from auth import init_db, create_user, authenticate_user
+import pandas as pd
+import plotly.express as px # 그래프용 (설치 필요: pip install plotly)
+from datetime import datetime
+
+# auth.py에서 함수 임포트 (get_all_users_df 추가됨)
+from auth import init_db, create_user, authenticate_user, get_all_users_df
 
 from pages.presentation import (
     render_presentation_menu,
@@ -14,6 +19,11 @@ from pages.interview import (
     render_interview_practice_page,
 )
 
+# ----------------------------------------
+# 상수 설정
+# ----------------------------------------
+ADMIN_ID = "jjhjjh420"  # 관리자 아이디 설정
+
 # 페이지 기본 설정
 st.set_page_config(page_title="Spec-trum Pro", page_icon="🎙️", layout="wide")
 # DB 초기화
@@ -23,14 +33,14 @@ init_db()
 st.markdown("""
 <style>
     /* [NEW] Streamlit 기본 UI 숨기기 */
-    #MainMenu {visibility: hidden;} /* 상단 햄버거 메뉴 숨김 */
-    header {visibility: hidden;}    /* 상단 헤더 데코레이션 숨김 */
-    footer {visibility: hidden;}    /* 하단 'Made with Streamlit' 푸터 숨김 */
-    .stDeployButton {display:none;} /* Deploy 버튼 숨김 */
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+    .stDeployButton {display:none;}
 
     /* 전체 레이아웃 여백 조정 */
     .block-container {
-        padding-top: 3rem;   /* 헤더를 숨겼으므로 상단 여백을 조금 줄여도 됨 (5rem -> 3rem) */
+        padding-top: 3rem;
         padding-bottom: 3rem;
         padding-left: 3rem;
         padding-right: 3rem;
@@ -109,6 +119,15 @@ st.markdown("""
         font-weight: bold;
         margin-left: 8px;
     }
+    .badge-admin {
+        background-color: #DC2626;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        margin-left: 8px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -173,9 +192,14 @@ if st.session_state.step == "login":
                 if ok:
                     st.success(msg)
                     st.session_state.user = login_username
-                    # 로그인 시 기본 플랜 설정
-                    if "user_plan" not in st.session_state:
-                        st.session_state.user_plan = "free"
+                    
+                    # 관리자 ID 체크
+                    if login_username == ADMIN_ID:
+                        st.session_state.user_plan = "admin"
+                    else:
+                        # 일반 유저는 기본 Free (실제론 DB 연동)
+                        if "user_plan" not in st.session_state or st.session_state.user_plan == "admin":
+                             st.session_state.user_plan = "free"
 
                     # 상태 초기화
                     st.session_state.script = ""
@@ -217,7 +241,10 @@ elif st.session_state.step == "main_menu":
     
     with top_bar_col1:
         plan_badge = ""
-        if st.session_state.user_plan == "pro":
+        # [NEW] 관리자 배지 처리
+        if st.session_state.user == ADMIN_ID:
+            plan_badge = '<span class="badge-admin">ADMIN</span>'
+        elif st.session_state.user_plan == "pro":
             plan_badge = '<span class="badge-pro">PRO</span>'
         else:
             plan_badge = '<span class="badge-free">FREE</span>'
@@ -227,9 +254,14 @@ elif st.session_state.step == "main_menu":
     with top_bar_col2:
         btn_col1, btn_col2 = st.columns(2)
         with btn_col1:
-            if st.button("🛒 멤버십 관리", use_container_width=True):
-                st.session_state.next_dest = "main_menu"
-                go_to("pricing")
+            # [NEW] 관리자인 경우 '멤버십 관리' 대신 '관리자 대시보드' 버튼 노출
+            if st.session_state.user == ADMIN_ID:
+                if st.button("⚙️ 대시보드", use_container_width=True):
+                    go_to("admin_dashboard")
+            else:
+                if st.button("🛒 멤버십 관리", use_container_width=True):
+                    st.session_state.next_dest = "main_menu"
+                    go_to("pricing")
         with btn_col2:
             if st.button("로그아웃", use_container_width=True):
                 st.session_state.user = None
@@ -363,6 +395,124 @@ elif st.session_state.step == "main_menu":
             """,
             unsafe_allow_html=True,
         )
+
+# [NEW] 관리자 대시보드 페이지
+elif st.session_state.step == "admin_dashboard":
+    # 보안 체크: URL 조작으로 들어오는 경우 방지
+    if st.session_state.user != ADMIN_ID:
+        st.error("접근 권한이 없습니다.")
+        if st.button("메인으로"):
+            go_to("main_menu")
+    else:
+        if st.button("← 메인으로 돌아가기"):
+            go_to("main_menu")
+        
+        st.markdown("<h1 style='color:#F87171;'>⚙️ Admin Dashboard</h1>", unsafe_allow_html=True)
+        st.caption(f"관리자 모드 접속 중: {st.session_state.user}")
+        
+        # 탭 구성
+        tab_dash, tab_users, tab_settings = st.tabs(["대시보드", "사용자 관리", "시스템 설정"])
+        
+        # 1. 대시보드 (통계)
+        with tab_dash:
+            # 사용자 데이터 가져오기
+            try:
+                df_users = get_all_users_df()
+                total_users = len(df_users)
+                pro_users = len(df_users[df_users['plan'] == 'Pro'])
+                free_users = total_users - pro_users
+            except Exception as e:
+                st.error(f"데이터 로드 실패: {e}")
+                df_users = pd.DataFrame()
+                total_users = 0
+                pro_users = 0
+                free_users = 0
+
+            # KPI 카드
+            kpi1, kpi2, kpi3 = st.columns(3)
+            kpi1.metric("총 가입자 수", f"{total_users} 명", "+2 today")
+            kpi2.metric("Pro 멤버십", f"{pro_users} 명", "35%")
+            kpi3.metric("오늘의 생성 요청", "128 건", "+12%")
+
+            st.divider()
+            
+            # 차트 (가입자 추이 등)
+            col_chart1, col_chart2 = st.columns(2)
+            with col_chart1:
+                st.markdown("#### 📊 주간 사용자 활성도")
+                # 더미 데이터 차트
+                mock_data = pd.DataFrame({
+                    "Day": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                    "Users": [45, 52, 48, 60, 55, 30, 35]
+                })
+                fig = px.bar(mock_data, x="Day", y="Users", color="Users", 
+                             color_continuous_scale="bluyl")
+                fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="white")
+                st.plotly_chart(fig, use_container_width=True)
+            
+            with col_chart2:
+                st.markdown("#### 🍰 멤버십 비율")
+                if total_users > 0:
+                    fig2 = px.pie(names=["Free", "Pro"], values=[free_users, pro_users], hole=0.4,
+                                  color_discrete_sequence=["#374151", "#3B82F6"])
+                    fig2.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color="white")
+                    st.plotly_chart(fig2, use_container_width=True)
+
+        # 2. 사용자 관리 (테이블)
+        with tab_users:
+            st.markdown("#### 👥 전체 사용자 목록")
+            
+            if not df_users.empty:
+                # 검색 기능
+                search_term = st.text_input("사용자 검색 (ID)", placeholder="아이디 입력...")
+                
+                display_df = df_users
+                if search_term:
+                    display_df = df_users[df_users['username'].str.contains(search_term, case=False)]
+                
+                # 데이터프레임 스타일링 표시
+                st.dataframe(
+                    display_df,
+                    column_config={
+                        "username": "사용자 ID",
+                        "plan": st.column_config.SelectboxColumn(
+                            "멤버십",
+                            options=["Free", "Pro", "Enterprise"],
+                            required=True,
+                        ),
+                        "join_date": st.column_config.DatetimeColumn("가입일", format="D MMM YYYY"),
+                        "last_login": st.column_config.DatetimeColumn("최근 접속", format="D MMM HH:mm"),
+                    },
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                
+                # [예시] 사용자 관리 액션 (실제 구현은 DB 업데이트 필요)
+                with st.expander("🛠 사용자 계정 제어"):
+                    target_user = st.selectbox("대상 사용자 선택", display_df['username'].unique())
+                    col_act1, col_act2 = st.columns(2)
+                    with col_act1:
+                        if st.button("비밀번호 초기화", use_container_width=True):
+                            st.warning(f"{target_user}님의 비밀번호를 초기화했습니다. (Mock)")
+                    with col_act2:
+                        if st.button("계정 삭제 (주의)", type="primary", use_container_width=True):
+                            st.error(f"{target_user}님 계정이 삭제되었습니다. (Mock)")
+            else:
+                st.info("가입된 사용자가 없습니다.")
+
+        # 3. 시스템 설정
+        with tab_settings:
+            st.markdown("#### 🔧 시스템 제어")
+            
+            st.toggle("🚧 유지보수 모드 활성화 (일반 유저 접속 제한)")
+            st.toggle("🔔 전체 공지사항 배너 띄우기")
+            
+            st.markdown("#### 📂 데이터 관리")
+            if st.button("오래된 로그 정리"):
+                with st.spinner("로그 정리 중..."):
+                    time.sleep(1)
+                st.success("30일 지난 로그가 삭제되었습니다.")
+
 
 # [NEW] 요금제 선택 페이지 (상점)
 elif st.session_state.step == "pricing":
@@ -510,19 +660,4 @@ elif st.session_state.step == "pres_3_analyst":
     render_analyst_page(go_to)
 
 elif st.session_state.step == "inter_upload":
-    if st.session_state.user is None:
-        st.warning("로그인 후 이용할 수 있습니다.")
-        st.session_state.step = "login"
-        st.rerun()
-    
-    if st.session_state.user_plan == "free":
-        st.info("💡 Free 플랜 이용 중: 면접 질문이 5개로 제한되며, 상세 분석 리포트가 간소화됩니다.")
-    
-    render_interview_upload_page(go_to)
-
-elif st.session_state.step == "inter_practice":
-    if st.session_state.user is None:
-        st.warning("로그인 후 이용할 수 있습니다.")
-        st.session_state.step = "login"
-        st.rerun()
-    render_interview_practice_page(go_to)
+    if st.session_state.user is None
