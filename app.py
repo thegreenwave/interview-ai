@@ -18,15 +18,18 @@ st.set_page_config(page_title="Spec-trum Pro", page_icon="🎙️", layout="wide
 # DB 초기화 (최초 1회, 존재하면 그냥 패스)
 init_db()
 
-# ✅ 전역 스타일 주입 (카드, 섹션 타이틀 등)
+# ✅ 전역 스타일 주입
+# 수정사항: .block-container의 padding-top을 2rem -> 5rem으로 변경하여 상단 잘림 해결
 st.markdown("""
 <style>
+    /* 전체 레이아웃 여백 조정 */
     .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
+        padding-top: 5rem;   /* 상단 여백 확보 */
+        padding-bottom: 3rem;
         padding-left: 3rem;
         padding-right: 3rem;
     }
+    
     /* 공용 카드 스타일 */
     .spec-card {
         background-color: #020617;
@@ -73,7 +76,6 @@ st.markdown("""
         color: #6B7280;
         margin-bottom: 0.3rem;
     }
-    /* ...기존 스타일 유지... */
     .spec-step-box {
         background-color: #111827;
         padding: 1rem;
@@ -127,8 +129,10 @@ def go_to(page: str):
 # 화면 라우팅
 # -----------------------------
 if st.session_state.step == "login":
+    # 로그인 화면 상단 여백은 조금 더 좁아도 되므로 컨테이너 사용
     c1, c2, c3 = st.columns([1, 2, 1])
     with c2:
+        st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True) # 강제 여백
         st.title("🔒 Spec-trum Pro")
         st.caption("개인 계정으로 로그인하여 발표/면접 연습 기록을 분리해서 관리합니다.")
 
