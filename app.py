@@ -292,6 +292,7 @@ elif st.session_state.step == "main_menu":
                 <div class="spec-track-bullet">· AI가 주제에 맞는 발표 대본 자동 생성</div>
                 <div class="spec-track-bullet">· 대본의 논리 구조·전달력 피드백</div>
                 <div class="spec-track-bullet">· 속도·침묵·피치 기반 음성 분석</div>
+                <div class="spec-track-bullet">· 발표에 대한 ai의 객관적 평가</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -360,8 +361,8 @@ elif st.session_state.step == "main_menu":
             """
             <div class="spec-step-box">
                 <strong> 실전 면접 시뮬레이션</strong><br/>
-                학교생확기록부 PDF를 올리고, 실제 면접처럼 모의면접을 진행해 보세요.
-                세션이 끝나면 질문별 점수와 피드백이 정리된 레포트를 받게 됩니다.
+                면접자료를 올리고, 실제 면접같은 모의면접을 진행해 보세요.
+                세션 이후 질문별 점수와 피드백이 정리된 레포트를 받게 됩니다.
             </div>
             """,
             unsafe_allow_html=True,
