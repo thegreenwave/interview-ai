@@ -16,6 +16,131 @@ from pages.interview import (
 # 페이지 기본 설정
 st.set_page_config(page_title="Spec-trum Pro", page_icon="🎙️", layout="wide")
 
+# ✅ 전역 스타일 주입 (카드, 섹션 타이틀 등)
+st.markdown(
+    """
+    <style>
+    /* 전체 레이아웃 여백 조정 */
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        padding-left: 3rem;
+        padding-right: 3rem;
+    }
+    /* 공용 카드 스타일 */
+    .spec-card {
+        background-color: #020617;
+        padding: 1.25rem 1.5rem;
+        border-radius: 1rem;
+        border: 1px solid #1F2937;
+        margin-bottom: 1rem;
+    }
+    .spec-card-tight {
+        background-color: #020617;
+        padding: 0.9rem 1rem;
+        border-radius: 0.9rem;
+        border: 1px solid #1F2937;
+        margin-bottom: 0.75rem;
+    }
+    .spec-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #E5E7EB;
+    }
+    .spec-subtitle {
+        font-size: 0.9rem;
+        color: #9CA3AF;
+        margin-bottom: 0.4rem;
+    }
+    .spec-pill {
+        display: inline-block;
+        padding: 0.15rem 0.7rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        border: 1px solid #374151;
+        color: #9CA3AF;
+        margin-right: 0.3rem;
+        margin-top: 0.2rem;
+    }
+    .spec-badge-success {
+        color: #22C55E;
+        border-color: #22C55E33;
+        background-color: #22C55E0D;
+    }
+    .spec-badge-warn {
+        color: #FACC15;
+        border-color: #FACC1533;
+        background-color: #FACC150D;
+    }
+    .spec-badge-danger {
+        color: #F97373;
+        border-color: #F9737333;
+        background-color: #F973730D;
+    }
+    .spec-section-label {
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #6B7280;
+        margin-bottom: 0.3rem;
+    }
+    .spec-feedback-box {
+        background-color: #020617;
+        border-radius: 0.9rem;
+        border: 1px solid #1F2937;
+        padding: 0.9rem 1rem;
+        margin-top: 0.5rem;
+    }
+    .spec-feedback-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #E5E7EB;
+        margin-bottom: 0.25rem;
+    }
+    .spec-feedback-body {
+        font-size: 0.85rem;
+        color: #D1D5DB;
+        line-height: 1.5;
+    }
+    .spec-question-number {
+        font-size: 0.8rem;
+        color: #9CA3AF;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+    .spec-question-text {
+        font-size: 1rem;
+        color: #F9FAFB;
+        margin-top: 0.3rem;
+    }
+    .spec-timer-ok {
+        color: #22C55E;
+    }
+    .spec-timer-warn {
+        color: #F59E0B;
+    }
+    .spec-timer-danger {
+        color: #EF4444;
+    }
+    .spec-timer-label {
+        font-size: 0.8rem;
+        color: #9CA3AF;
+        margin-bottom: 0.2rem;
+    }
+    .spec-timer-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# 이하 기존 네비/상태 초기화 부분은 그대로 유지
+# ...
+
+
 # 네비게이션 상태 초기화
 if "step" not in st.session_state:
     st.session_state.step = "login"
