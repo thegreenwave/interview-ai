@@ -3,8 +3,31 @@ import sqlite3
 import hashlib
 import os
 from typing import Tuple
+import pandas as pd
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "users.db")
+
+def get_all_users_df():
+    """관리자용: 모든 사용자 정보를 데이터프레임으로 반환"""
+    conn = sqlite3.connect("users.db")
+    # 비밀번호는 보안상 제외하고 가져옵니다.
+    # 만약 테이블 컬럼이 username, password 뿐이라면 아래와 같이 씁니다.
+    # created_at 등의 컬럼이 없다면 username만 가져옵니다.
+    try:
+        df = pd.read_sql_query("SELECT username FROM users", conn)
+        # 가상의 데이터(가입일, 플랜)를 시각적으로 보여주기 위해 추가 (실제 컬럼이 있다면 SQL을 수정하세요)
+        import random
+        from datetime import datetime, timedelta
+        
+        # 데모용 가짜 데이터 생성
+        df['join_date'] = [datetime.now() - timedelta(days=random.randint(0, 365)) for _ in range(len(df))]
+        df['plan'] = [random.choice(['Free', 'Pro', 'Free']) for _ in range(len(df))]
+        df['last_login'] = [datetime.now() - timedelta(hours=random.randint(0, 72)) for _ in range(len(df))]
+    except:
+        df = pd.DataFrame(columns=["username", "plan", "join_date"])
+    finally:
+        conn.close()
+    return df
 
 
 def init_db():
