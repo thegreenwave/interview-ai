@@ -22,9 +22,8 @@ def text_to_speech_bytes(text: str) -> bytes:
        필요하면 공식 문서를 보고 model/필드를 조정해야 함.
     """
     try:
-        # SDK 버전에 맞게 model 이름 수정 필요할 수 있음.
         response = client.audio.speech.create(
-            model="gpt-4o-mini-tts",  # 예시: "tts-1" 등으로 교체 가능
+            model="gpt-4o-mini-tts",  # 예: "tts-1" 등 환경에 맞게 변경 가능
             voice="alloy",
             input=text,
         )
@@ -36,12 +35,24 @@ def text_to_speech_bytes(text: str) -> bytes:
 
 
 def render_interview_upload_page(go_to):
-    st.title("📂 생기부 업로드")
-    uploaded = st.file_uploader("PDF 파일 업로드", type="pdf")
+    st.markdown(
+        """
+        <div class="spec-card">
+            <div class="spec-section-label">Interview · Setup</div>
+            <div class="spec-title">생기부 기반 면접 질문 생성</div>
+            <div class="spec-subtitle">
+                학생부 PDF를 업로드하면, 지원자에게 맞는 학생부종합 면접 예상 질문 10개를 자동으로 생성합니다.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    uploaded = st.file_uploader("학생부(생활기록부) PDF 업로드", type="pdf")
 
     if uploaded:
         if st.button("질문 생성 및 다음 단계", type="primary", use_container_width=True):
-            with st.spinner("생기부를 분석해 면접 질문을 생성 중입니다..."):
+            with st.spinner("생기부를 분석해 면접 질문을 생성하고 있습니다..."):
                 text = extract_text_from_pdf(uploaded)
                 if len(text) > 50:
                     prompt = (
@@ -71,7 +82,7 @@ def render_interview_upload_page(go_to):
                     except Exception as e:
                         st.error(f"질문 생성 중 오류가 발생했습니다: {e}")
                 else:
-                    st.error("텍스트 인식 실패. 이미지 PDF일 가능성이 높습니다. 스캔 품질을 확인해 주세요.")
+                    st.error("텍스트 인식에 실패했습니다. 이미지 위주 PDF일 수 있으니 스캔 품질을 확인해 주세요.")
 
     st.markdown("---")
     if st.button("⬅️ 메인 메뉴로", use_container_width=True):
@@ -79,7 +90,18 @@ def render_interview_upload_page(go_to):
 
 
 def render_interview_practice_page(go_to):
-    st.title("🎙️ 실전 면접 트레이닝")
+    st.markdown(
+        """
+        <div class="spec-card">
+            <div class="spec-section-label">Interview · Session</div>
+            <div class="spec-title">실전 면접 트레이닝</div>
+            <div class="spec-subtitle">
+                생성된 예상 질문 세트를 기반으로, 실제 면접처럼 제한 시간 안에서 순서대로 답변을 연습합니다.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     questions_text = st.session_state.get(
         "uni_questions", "아직 생성된 질문이 없습니다. 이전 단계에서 생기부를 업로드해 주세요."
@@ -96,9 +118,21 @@ def render_interview_practice_page(go_to):
     else:
         # 1) 면접 설정 단계
         if not st.session_state.get("interview_started", False):
-            st.subheader("⏱ 실전 면접 설정")
+            st.markdown(
+                """
+                <div class="spec-card">
+                    <div class="spec-section-label">Session Setup</div>
+                    <div class="spec-title">면접 세션 설정</div>
+                    <div class="spec-subtitle">
+                        전체 면접 시간을 설정하고 시작하면, 질문 1번부터 순서대로 답변을 진행합니다.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
-            st.write(f"총 질문 수: **{len(q_list)}개**")
+            st.write(f"이번 세션의 질문 수: **{len(q_list)}개**")
+
             total_minutes = st.slider(
                 "총 면접 시간(분) 설정",
                 min_value=3,
@@ -108,7 +142,7 @@ def render_interview_practice_page(go_to):
                 help="실제 면접처럼 전체 세션 시간을 설정합니다.",
             )
 
-            if st.button("🎬 실전 면접 시작", type="primary"):
+            if st.button("🎬 실전 면접 시작", type="primary", use_container_width=True):
                 st.session_state.interview_total_seconds = total_minutes * 60
                 st.session_state.interview_start_time = time.time()
                 st.session_state.interview_started = True
@@ -124,20 +158,36 @@ def render_interview_practice_page(go_to):
             elapsed = time.time() - start_time if start_time else 0
             remaining = max(0, total_sec - elapsed)
 
-            # 남은 시간 표시
             min_rem = int(remaining // 60)
             sec_rem = int(remaining % 60)
 
-            col_time, col_info = st.columns([1, 2])
+            # 남은 시간 컬러 상태
+            if remaining > total_sec * 0.6:
+                timer_class = "spec-timer-ok"
+            elif remaining > total_sec * 0.3:
+                timer_class = "spec-timer-warn"
+            else:
+                timer_class = "spec-timer-danger"
+
+            col_time, col_prog = st.columns([1, 3])
             with col_time:
-                st.metric(
-                    "남은 총 면접 시간",
-                    f"{min_rem:02d}:{sec_rem:02d}",
+                st.markdown(
+                    f"""
+                    <div class="spec-card-tight">
+                        <div class="spec-timer-label">남은 총 면접 시간</div>
+                        <div class="spec-timer-value {timer_class}">
+                            {min_rem:02d}:{sec_rem:02d}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
                 )
-            with col_info:
-                st.caption(
-                    "※ 남은 시간은 참고용입니다. 실제 답변 녹음 길이는 강제 제한하지 않습니다."
-                )
+
+            with col_prog:
+                current_idx = st.session_state.current_q_idx
+                total_q = len(q_list)
+                ratio = current_idx / total_q if total_q > 0 else 0
+                st.progress(ratio, text=f"질문 진행 상황: {current_idx}/{total_q}")
 
             st.markdown("---")
 
@@ -146,7 +196,13 @@ def render_interview_practice_page(go_to):
                 st.success("✅ 모든 질문에 대한 평가가 완료되었습니다.")
 
                 if st.session_state.interview_records:
-                    st.markdown("### 📘 누적 면접 레포트")
+                    st.markdown(
+                        """
+                        <div class="spec-section-label">Summary</div>
+                        <div class="spec-title">누적 면접 레포트</div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
                     df = pd.DataFrame(
                         [
@@ -188,24 +244,41 @@ def render_interview_practice_page(go_to):
                 idx = st.session_state.current_q_idx
                 current_q_number = idx + 1
                 current_question = q_list[idx]
+                total_q = len(q_list)
 
-                st.subheader(f"질문 {current_q_number} / {len(q_list)}")
-                st.write(current_question)
+                # 질문 카드
+                st.markdown(
+                    f"""
+                    <div class="spec-card">
+                        <div class="spec-question-number">Question {current_q_number} / {total_q}</div>
+                        <div class="spec-question-text">{current_question}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
-                # 질문을 음성으로 듣고 싶으면 이 버튼 사용 (옵션)
-                if st.button("🔊 질문 음성으로 듣기"):
-                    audio_bytes = text_to_speech_bytes(current_question)
-                    if audio_bytes:
-                        st.audio(audio_bytes, format="audio/mp3")
+                col_q_btn, col_x = st.columns([1, 3])
+                with col_q_btn:
+                    if st.button("🔊 질문 음성으로 듣기", use_container_width=True):
+                        audio_bytes = text_to_speech_bytes(current_question)
+                        if audio_bytes:
+                            st.audio(audio_bytes, format="audio/mp3")
 
-                st.markdown("#### 🎤 이 질문에 대한 답변 녹음")
+                st.markdown(
+                    """
+                    <div class="spec-section-label">Answer</div>
+                    <div class="spec-title">답변 녹음 및 평가</div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
                 audio = st.audio_input("질문에 대한 답변을 녹음하세요")
 
-                if st.button("🧠 이 질문 평가하고 다음 질문으로 넘어가기", type="primary"):
+                if st.button("🧠 이 질문 평가하고 다음 질문으로 넘어가기", type="primary", use_container_width=True):
                     if audio is None:
                         st.warning("먼저 답변을 녹음해 주세요.")
                     else:
-                        with st.spinner("면접관 평가 중..."):
+                        with st.spinner("면접관 평가 중입니다..."):
                             try:
                                 audio.seek(0)
                                 transcript = client.audio.transcriptions.create(
@@ -230,8 +303,14 @@ def render_interview_practice_page(go_to):
                                 )
                                 data = json.loads(res.choices[0].message.content)
 
-                                st.subheader("이번 질문에 대한 평가 리포트")
-                                st.write(data.get("feedback", "별도의 피드백이 제공되지 않았습니다."))
+                                # 이번 문항에 대한 평가 카드
+                                st.markdown(
+                                    """
+                                    <div class="spec-section-label">Feedback</div>
+                                    <div class="spec-title">이번 질문에 대한 평가 리포트</div>
+                                    """,
+                                    unsafe_allow_html=True,
+                                )
 
                                 cats = ["논리", "진정", "자신", "적합"]
                                 vals = [
@@ -252,9 +331,23 @@ def render_interview_practice_page(go_to):
                                 fig.update_layout(
                                     polar=dict(radialaxis=dict(range=[0, 100])),
                                     showlegend=False,
-                                    template="plotly_white",
+                                    template="plotly_dark",
+                                    margin=dict(l=40, r=20, t=30, b=30),
                                 )
                                 st.plotly_chart(fig, use_container_width=True)
+
+                                feedback_text = data.get(
+                                    "feedback", "별도의 피드백이 제공되지 않았습니다."
+                                )
+                                st.markdown(
+                                    f"""
+                                    <div class="spec-feedback-box">
+                                        <div class="spec-feedback-title">면접관 코멘트</div>
+                                        <div class="spec-feedback-body">{feedback_text}</div>
+                                    </div>
+                                    """,
+                                    unsafe_allow_html=True,
+                                )
 
                                 with st.expander("AI가 인식한 답변 텍스트 (Whisper 결과)"):
                                     st.write(transcript)
