@@ -17,6 +17,14 @@ from pages.interview import (
 st.set_page_config(page_title="Spec-trum Pro", page_icon="🎙️", layout="wide")
 
 # ✅ 전역 스타일 주입 (카드, 섹션 타이틀 등)
+st.markdown("""
+<style>
+    .block-container {
+        padding-top: 2rem !important;   /* 기본: 약 6rem → 우리가 원하는 만큼만 */
+    }
+</style>
+""", unsafe_allow_html=True)
+
 st.markdown(
     """
     <style>
@@ -202,8 +210,8 @@ elif st.session_state.step == "main_menu":
                     한 번의 연습도, 실제 면접처럼.
                 </div>
                 <div class="spec-hero-left-subtitle">
-                    발표와 면접을 위한 AI 코칭을 하나의 화면에서 제공합니다.
-                    녹음만 하면, 내용·발음·진행 속도까지 자동으로 분석하고
+                    발표와 면접을 위한 AI 코칭을 하나의 서비스에서 제공합니다.
+                    \n녹음만 하면, 내용·발음·진행 속도까지 자동으로 분석하고
                     질문별 피드백을 누적 레포트로 정리해 드립니다.
                 </div>
             </div>
@@ -252,7 +260,7 @@ elif st.session_state.step == "main_menu":
             """
             <div class="spec-card">
                 <div class="spec-section-label">Track · Interview</div>
-                <div class="spec-track-card-title">🎓 생기부 면접</div>
+                <div class="spec-track-card-title">🎓 생기부 기반 면접</div>
                 <div class="spec-track-card-sub">
                     생기부 PDF를 기반으로 실제 면접처럼 질문에 답하고, 질문별 평가를 레포트로 받아볼 수 있습니다.
                 </div>
