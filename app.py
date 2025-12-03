@@ -235,6 +235,11 @@ if st.session_state.step == "login":
 
 
 elif st.session_state.step == "main_menu":
+    if st.session_state.user is None:
+        st.warning("이 페이지를 보려면 로그인이 필요합니다.")
+        st.session_state.step = "login"
+        st.rerun()
+
     # ===== 상단 히어로 영역 =====
     st.markdown(
         """
@@ -358,19 +363,43 @@ elif st.session_state.step == "main_menu":
 
 
 elif st.session_state.step == "pres_menu":
+    if st.session_state.user is None:
+        st.warning("로그인 후 이용할 수 있습니다.")
+        st.session_state.step = "login"
+        st.rerun()
     render_presentation_menu(go_to)
 
 elif st.session_state.step == "pres_1_writer":
+    if st.session_state.user is None:
+        st.warning("로그인 후 이용할 수 있습니다.")
+        st.session_state.step = "login"
+        st.rerun()
     render_writer_page(go_to)
 
 elif st.session_state.step == "pres_2_advisor":
+    if st.session_state.user is None:
+        st.warning("로그인 후 이용할 수 있습니다.")
+        st.session_state.step = "login"
+        st.rerun()
     render_advisor_page(go_to)
 
 elif st.session_state.step == "pres_3_analyst":
+    if st.session_state.user is None:
+        st.warning("로그인 후 이용할 수 있습니다.")
+        st.session_state.step = "login"
+        st.rerun()
     render_analyst_page(go_to)
 
 elif st.session_state.step == "inter_upload":
+    if st.session_state.user is None:
+        st.warning("로그인 후 이용할 수 있습니다.")
+        st.session_state.step = "login"
+        st.rerun()
     render_interview_upload_page(go_to)
 
 elif st.session_state.step == "inter_practice":
+    if st.session_state.user is None:
+        st.warning("로그인 후 이용할 수 있습니다.")
+        st.session_state.step = "login"
+        st.rerun()
     render_interview_practice_page(go_to)
