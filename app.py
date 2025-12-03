@@ -1,6 +1,7 @@
 #메인 진입점 (네비게이션만 담당)
 # app.py
 import streamlit as st
+from auth import init_db, create_user, authenticate_user
 
 from pages.presentation import (
     render_presentation_menu,
@@ -15,6 +16,8 @@ from pages.interview import (
 
 # 페이지 기본 설정
 st.set_page_config(page_title="Spec-trum Pro", page_icon="🎙️", layout="wide")
+# DB 초기화 (최초 1회, 존재하면 그냥 패스)
+init_db()
 
 # ✅ 전역 스타일 주입 (카드, 섹션 타이틀 등)
 st.markdown("""
