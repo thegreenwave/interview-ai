@@ -187,17 +187,52 @@ def go_to(page: str):
 if st.session_state.step == "login":
     c1, c2, c3 = st.columns([1, 2, 1])
     with c2:
-        st.title("🔒 SPEC-TRUM")
-        st.write("역량 전달의 스펙트럼을 넓히다")
+        st.title("🔒 Spec-trum Pro")
+        st.caption("개인 계정으로 로그인하여 발표/면접 연습 기록을 분리해서 관리합니다.")
 
-        pw = st.text_input("비밀번호", type="password")
-        if st.button("로그인", use_container_width=True):
-            if pw == "0601":
-                st.success("접속 성공!")
-                st.session_state.step = "main_menu"
-                st.rerun()
-            else:
-                st.error("비밀번호 오류")
+        tab_login, tab_signup = st.tabs(["로그인", "회원가입"])
+
+        # 로그인 탭
+        with tab_login:
+            login_username = st.text_input("아이디", key="login_username")
+            login_password = st.text_input("비밀번호", type="password", key="login_password")
+
+            if st.button("로그인", use_container_width=True, key="login_button"):
+                ok, msg = authenticate_user(login_username, login_password)
+                if ok:
+                    st.success(msg)
+                    # 로그인한 사용자 정보 저장
+                    st.session_state.user = login_username
+
+                    # 이전 사용자 데이터가 섞이지 않도록 주요 상태 초기화 (필요한 부분만)
+                    st.session_state.script = ""
+                    st.session_state.uni_questions = ""
+                    st.session_state.uni_q_list = []
+                    st.session_state.current_q_idx = 0
+                    st.session_state.interview_records = []
+                    st.session_state.interview_started = False
+
+                    st.session_state.step = "main_menu"
+                    st.rerun()
+                else:
+                    st.error(msg)
+
+        # 회원가입 탭
+        with tab_signup:
+            signup_username = st.text_input("새 아이디", key="signup_username")
+            signup_password = st.text_input("새 비밀번호", type="password", key="signup_password")
+            signup_password2 = st.text_input("비밀번호 확인", type="password", key="signup_password2")
+
+            if st.button("회원가입", use_container_width=True, key="signup_button"):
+                if signup_password != signup_password2:
+                    st.error("비밀번호가 서로 일치하지 않습니다.")
+                else:
+                    ok, msg = create_user(signup_username, signup_password)
+                    if ok:
+                        st.success(msg)
+                    else:
+                        st.error(msg)
+
 
 elif st.session_state.step == "main_menu":
     # ===== 상단 히어로 영역 =====
