@@ -4,3 +4,4 @@ openai
 librosa
 numpy
 plotly
+PyPDF2
