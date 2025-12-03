@@ -660,4 +660,19 @@ elif st.session_state.step == "pres_3_analyst":
     render_analyst_page(go_to)
 
 elif st.session_state.step == "inter_upload":
-    if st.session_state.user is None
+    if st.session_state.user is None:
+        st.warning("로그인 후 이용할 수 있습니다.")
+        st.session_state.step = "login"
+        st.rerun()
+    
+    if st.session_state.user_plan == "free":
+        st.info("💡 Free 플랜 이용 중: 면접 질문이 5개로 제한되며, 상세 분석 리포트가 간소화됩니다.")
+    
+    render_interview_upload_page(go_to)
+
+elif st.session_state.step == "inter_practice":
+    if st.session_state.user is None:
+        st.warning("로그인 후 이용할 수 있습니다.")
+        st.session_state.step = "login"
+        st.rerun()
+    render_interview_practice_page(go_to)
