@@ -143,3 +143,19 @@ def get_all_inquiries():
     return df
 
 
+
+def check_user_has_inquiry(username):
+    """특정 사용자가 이미 문의를 등록했는지 확인 (True면 이미 등록됨)"""
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
+    try:
+        # 해당 유저로 작성된 문의가 있는지 조회
+        c.execute("SELECT 1 FROM inquiries WHERE username = ? LIMIT 1", (username,))
+        result = c.fetchone()
+        return result is not None
+    except:
+        return False
+    finally:
+        conn.close()
+
+
