@@ -19,12 +19,18 @@ st.set_page_config(page_title="Spec-trum Pro", page_icon="🎙️", layout="wide
 # DB 초기화
 init_db()
 
-# ✅ 전역 스타일 주입
+# ✅ 전역 스타일 주입 (UI 숨김 처리 포함)
 st.markdown("""
 <style>
+    /* [NEW] Streamlit 기본 UI 숨기기 */
+    #MainMenu {visibility: hidden;} /* 상단 햄버거 메뉴 숨김 */
+    header {visibility: hidden;}    /* 상단 헤더 데코레이션 숨김 */
+    footer {visibility: hidden;}    /* 하단 'Made with Streamlit' 푸터 숨김 */
+    .stDeployButton {display:none;} /* Deploy 버튼 숨김 */
+
     /* 전체 레이아웃 여백 조정 */
     .block-container {
-        padding-top: 5rem;
+        padding-top: 3rem;   /* 헤더를 숨겼으므로 상단 여백을 조금 줄여도 됨 (5rem -> 3rem) */
         padding-bottom: 3rem;
         padding-left: 3rem;
         padding-right: 3rem;
@@ -111,13 +117,11 @@ st.markdown("""
 if "step" not in st.session_state:
     st.session_state.step = "login"
 
-# [NEW] 요금제 페이지를 거쳐갈 때 최종 목적지를 저장할 변수
 if "next_dest" not in st.session_state:
     st.session_state.next_dest = "main_menu"
 
-# [NEW] 사용자 멤버십 상태 (DB 연동 시 DB에서 불러와야 함. 여기선 세션으로 시뮬레이션)
 if "user_plan" not in st.session_state:
-    st.session_state.user_plan = "free" # 기본값 free, 'pro' 등
+    st.session_state.user_plan = "free" 
 
 # 공용 상태 초기화
 if "script" not in st.session_state:
@@ -169,7 +173,7 @@ if st.session_state.step == "login":
                 if ok:
                     st.success(msg)
                     st.session_state.user = login_username
-                    # 로그인 시 기본 플랜 설정 (실제로는 DB에서 가져와야 함)
+                    # 로그인 시 기본 플랜 설정
                     if "user_plan" not in st.session_state:
                         st.session_state.user_plan = "free"
 
@@ -212,7 +216,6 @@ elif st.session_state.step == "main_menu":
     top_bar_col1, top_bar_col2 = st.columns([2, 1])
     
     with top_bar_col1:
-        # 플랜에 따른 배지 표시
         plan_badge = ""
         if st.session_state.user_plan == "pro":
             plan_badge = '<span class="badge-pro">PRO</span>'
@@ -222,11 +225,10 @@ elif st.session_state.step == "main_menu":
         st.markdown(f"👤 **{st.session_state.user}** 님 {plan_badge}", unsafe_allow_html=True)
 
     with top_bar_col2:
-        # [NEW] 상점(멤버십 관리) 버튼과 로그아웃 버튼
         btn_col1, btn_col2 = st.columns(2)
         with btn_col1:
             if st.button("🛒 멤버십 관리", use_container_width=True):
-                st.session_state.next_dest = "main_menu" # 상점 보고 다시 메인으로
+                st.session_state.next_dest = "main_menu"
                 go_to("pricing")
         with btn_col2:
             if st.button("로그아웃", use_container_width=True):
@@ -258,7 +260,6 @@ elif st.session_state.step == "main_menu":
     col1, col2 = st.columns(2)
 
     with col1:
-        # Free 플랜일 경우 제한 사항 표시 로직 예시
         pres_desc = "발표 대본 생성부터 음성 분석까지."
         if st.session_state.user_plan == "free":
             pres_desc += " <br><span style='color:#F59E0B; font-size:0.8rem;'>⚠️ Free 플랜: 일 3회 생성 제한</span>"
@@ -283,12 +284,7 @@ elif st.session_state.step == "main_menu":
             unsafe_allow_html=True,
         )
         if st.button("발표 트랙 시작하기", key="go_pres", use_container_width=True):
-            # [제한 로직 예시] Free 유저는 횟수 제한 등을 여기서 체크할 수 있음
-            # 일단은 제한 없이 들여보내되, 페이지 내부에서 기능을 잠글 수 있도록 설정
             st.session_state.next_dest = "pres_menu"
-            
-            # 처음 진입 시 or 플랜 변경 유도 시 pricing으로 보낼 수도 있으나,
-            # 여기선 편의상 바로 메뉴로 이동 (상단 '멤버십 관리' 버튼이 생겼으므로)
             go_to("pres_menu")
 
     with col2:
@@ -375,9 +371,7 @@ elif st.session_state.step == "pricing":
         st.session_state.step = "login"
         st.rerun()
 
-    # 상단 뒤로가기 버튼
     if st.button("← 돌아가기"):
-        # next_dest가 있으면 그리로, 없으면 메인으로
         target = st.session_state.get("next_dest", "main_menu")
         go_to(target)
 
@@ -396,10 +390,8 @@ elif st.session_state.step == "pricing":
 
     # 1. Basic Plan
     with p_col1:
-        # 현재 플랜인지 확인
         is_current = (st.session_state.user_plan == "free")
         border_color = "#22C55E" if is_current else "#1F2937"
-        bg_color = "#020617"
         
         st.markdown(
             f"""
@@ -428,11 +420,10 @@ elif st.session_state.step == "pricing":
                 time.sleep(1)
                 st.rerun()
 
-    # 2. Pro Plan (Highlight)
+    # 2. Pro Plan
     with p_col2:
         is_current = (st.session_state.user_plan == "pro")
-        card_class = "spec-card-highlight" if not is_current else "spec-card" # 현재 사용중이면 하이라이트 좀 뺄수도 있지만 여기선 유지
-        # 현재 사용중이면 테두리를 녹색으로 강조
+        card_class = "spec-card-highlight" if not is_current else "spec-card"
         style_extra = f"border: 2px solid #22C55E;" if is_current else ""
         
         st.markdown(
@@ -524,7 +515,6 @@ elif st.session_state.step == "inter_upload":
         st.session_state.step = "login"
         st.rerun()
     
-    # [제한 로직 예시] Free 유저는 5개만 생성한다고 알림 (실제 로직은 render 함수 안에서 처리 필요)
     if st.session_state.user_plan == "free":
         st.info("💡 Free 플랜 이용 중: 면접 질문이 5개로 제한되며, 상세 분석 리포트가 간소화됩니다.")
     
