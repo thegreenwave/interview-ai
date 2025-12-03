@@ -198,6 +198,8 @@ elif st.session_state.step == "main_menu":
                     <span>🎙</span>
                     <span>Spec-trum Pro · AI Speech & Interview Coach</span>
                 </div>
+                
+                
                 <div class="spec-hero-left-title">
                     한 번의 연습도, 실제 면접처럼.
                 </div>
