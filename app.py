@@ -25,7 +25,7 @@ init_db()
 st.markdown("""
 <style>
     .block-container {
-        padding-top: 2rem !important;   /* 기본: 약 6rem → 우리가 원하는 만큼만 */
+        padding-top: 4rem !important;   /* 기본: 약 6rem → 우리가 원하는 만큼만 */
     }
 </style>
 """, unsafe_allow_html=True)
