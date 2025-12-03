@@ -19,6 +19,8 @@ st.set_page_config(page_title="Spec-trum Pro", page_icon="🎙️", layout="wide
 # DB 초기화 (최초 1회, 존재하면 그냥 패스)
 init_db()
 
+
+
 # ✅ 전역 스타일 주입 (카드, 섹션 타이틀 등)
 st.markdown("""
 <style>
@@ -160,6 +162,10 @@ if "step" not in st.session_state:
 if "script" not in st.session_state:
     st.session_state.script = ""
 
+if "user" not in st.session_state:
+    st.session_state.user = None
+
+
 if "uni_questions" not in st.session_state:
     st.session_state.uni_questions = ""
 if "uni_q_list" not in st.session_state:
@@ -236,9 +242,19 @@ if st.session_state.step == "login":
 
 elif st.session_state.step == "main_menu":
     if st.session_state.user is None:
-        st.warning("이 페이지를 보려면 로그인이 필요합니다.")
         st.session_state.step = "login"
         st.rerun()
+
+    top_bar_col1, top_bar_col2 = st.columns([3, 1])
+    with top_bar_col1:
+        st.markdown(f"👤 **{st.session_state.user}** 님, 환영합니다.")
+    with top_bar_col2:
+        if st.button("로그아웃", use_container_width=True):
+            st.session_state.user = None
+            st.session_state.step = "login"
+            st.rerun()
+
+
 
     # ===== 상단 히어로 영역 =====
     st.markdown(
