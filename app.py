@@ -269,11 +269,7 @@ elif st.session_state.step == "main_menu":
                     한 번의 연습도, 실제 면접처럼.
                 </div>
                 <div class="spec-hero-left-subtitle">
-                    발표와 면접을 위한 AI 코칭을 하나의 서비스에서 제공합니다.
-
-
-
-                    
+                    발표와 면접을 위한 AI 코칭을 하나의 서비스에서 제공합니다.\n\n
                 </div>
             </div>
         </div>
