@@ -1,5 +1,6 @@
 # app.py
 import streamlit as st
+import time
 from auth import init_db, create_user, authenticate_user
 
 from pages.presentation import (
@@ -15,16 +16,15 @@ from pages.interview import (
 
 # 페이지 기본 설정
 st.set_page_config(page_title="Spec-trum Pro", page_icon="🎙️", layout="wide")
-# DB 초기화 (최초 1회, 존재하면 그냥 패스)
+# DB 초기화
 init_db()
 
 # ✅ 전역 스타일 주입
-# 수정사항: .block-container의 padding-top을 2rem -> 5rem으로 변경하여 상단 잘림 해결
 st.markdown("""
 <style>
     /* 전체 레이아웃 여백 조정 */
     .block-container {
-        padding-top: 5rem;   /* 상단 여백 확보 */
+        padding-top: 5rem;
         padding-bottom: 3rem;
         padding-left: 3rem;
         padding-right: 3rem;
@@ -39,7 +39,7 @@ st.markdown("""
         margin-bottom: 1rem;
     }
     .spec-card-highlight {
-        background-color: #172554; /* 짙은 파란색 배경 */
+        background-color: #172554;
         padding: 1.25rem 1.5rem;
         border-radius: 1rem;
         border: 1px solid #3B82F6;
@@ -85,6 +85,24 @@ st.markdown("""
         color: #D1D5DB;
         height: 100%;
     }
+    /* 멤버십 배지 스타일 */
+    .badge-free {
+        background-color: #374151;
+        color: #D1D5DB;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        margin-left: 8px;
+    }
+    .badge-pro {
+        background-color: #3B82F6;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        margin-left: 8px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -97,13 +115,17 @@ if "step" not in st.session_state:
 if "next_dest" not in st.session_state:
     st.session_state.next_dest = "main_menu"
 
+# [NEW] 사용자 멤버십 상태 (DB 연동 시 DB에서 불러와야 함. 여기선 세션으로 시뮬레이션)
+if "user_plan" not in st.session_state:
+    st.session_state.user_plan = "free" # 기본값 free, 'pro' 등
+
 # 공용 상태 초기화
 if "script" not in st.session_state:
     st.session_state.script = ""
-
 if "user" not in st.session_state:
     st.session_state.user = None
 
+# 인터뷰 관련 상태
 if "uni_questions" not in st.session_state:
     st.session_state.uni_questions = ""
 if "uni_q_list" not in st.session_state:
@@ -129,10 +151,9 @@ def go_to(page: str):
 # 화면 라우팅
 # -----------------------------
 if st.session_state.step == "login":
-    # 로그인 화면 상단 여백은 조금 더 좁아도 되므로 컨테이너 사용
     c1, c2, c3 = st.columns([1, 2, 1])
     with c2:
-        st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True) # 강제 여백
+        st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
         st.title("🔒 Spec-trum Pro")
         st.caption("개인 계정으로 로그인하여 발표/면접 연습 기록을 분리해서 관리합니다.")
 
@@ -148,6 +169,10 @@ if st.session_state.step == "login":
                 if ok:
                     st.success(msg)
                     st.session_state.user = login_username
+                    # 로그인 시 기본 플랜 설정 (실제로는 DB에서 가져와야 함)
+                    if "user_plan" not in st.session_state:
+                        st.session_state.user_plan = "free"
+
                     # 상태 초기화
                     st.session_state.script = ""
                     st.session_state.uni_questions = ""
@@ -183,14 +208,31 @@ elif st.session_state.step == "main_menu":
         st.session_state.step = "login"
         st.rerun()
 
-    top_bar_col1, top_bar_col2 = st.columns([3, 1])
+    # 상단 정보바 구성
+    top_bar_col1, top_bar_col2 = st.columns([2, 1])
+    
     with top_bar_col1:
-        st.markdown(f"👤 **{st.session_state.user}** 님, 환영합니다.")
+        # 플랜에 따른 배지 표시
+        plan_badge = ""
+        if st.session_state.user_plan == "pro":
+            plan_badge = '<span class="badge-pro">PRO</span>'
+        else:
+            plan_badge = '<span class="badge-free">FREE</span>'
+            
+        st.markdown(f"👤 **{st.session_state.user}** 님 {plan_badge}", unsafe_allow_html=True)
+
     with top_bar_col2:
-        if st.button("로그아웃", use_container_width=True):
-            st.session_state.user = None
-            st.session_state.step = "login"
-            st.rerun()
+        # [NEW] 상점(멤버십 관리) 버튼과 로그아웃 버튼
+        btn_col1, btn_col2 = st.columns(2)
+        with btn_col1:
+            if st.button("🛒 멤버십 관리", use_container_width=True):
+                st.session_state.next_dest = "main_menu" # 상점 보고 다시 메인으로
+                go_to("pricing")
+        with btn_col2:
+            if st.button("로그아웃", use_container_width=True):
+                st.session_state.user = None
+                st.session_state.step = "login"
+                st.rerun()
 
     # ===== 상단 히어로 영역 =====
     st.markdown(
@@ -216,13 +258,20 @@ elif st.session_state.step == "main_menu":
     col1, col2 = st.columns(2)
 
     with col1:
+        # Free 플랜일 경우 제한 사항 표시 로직 예시
+        pres_desc = "발표 대본 생성부터 음성 분석까지."
+        if st.session_state.user_plan == "free":
+            pres_desc += " <br><span style='color:#F59E0B; font-size:0.8rem;'>⚠️ Free 플랜: 일 3회 생성 제한</span>"
+        else:
+            pres_desc += " <br><span style='color:#3B82F6; font-size:0.8rem;'>✨ Pro 플랜: 무제한 생성 가능</span>"
+
         st.markdown(
-            """
+            f"""
             <div class="spec-card">
                 <div class="spec-section-label">Track · Presentation</div>
                 <div class="spec-title">🎤 발표 마스터</div>
                 <div class="spec-subtitle">
-                    발표 대본 생성부터 음성 분석까지, 발표력을 체계적으로 끌어올리고 싶을 때 사용하세요.
+                    {pres_desc}
                 </div>
                 <div style="font-size: 0.85rem; color: #6B7280; margin-top: 1rem;">
                     · AI 대본 생성 & 구조 피드백<br>
@@ -233,19 +282,29 @@ elif st.session_state.step == "main_menu":
             """,
             unsafe_allow_html=True,
         )
-        # [변경] 바로 이동하지 않고 next_dest 저장 후 pricing으로 이동
         if st.button("발표 트랙 시작하기", key="go_pres", use_container_width=True):
+            # [제한 로직 예시] Free 유저는 횟수 제한 등을 여기서 체크할 수 있음
+            # 일단은 제한 없이 들여보내되, 페이지 내부에서 기능을 잠글 수 있도록 설정
             st.session_state.next_dest = "pres_menu"
-            go_to("pricing")
+            
+            # 처음 진입 시 or 플랜 변경 유도 시 pricing으로 보낼 수도 있으나,
+            # 여기선 편의상 바로 메뉴로 이동 (상단 '멤버십 관리' 버튼이 생겼으므로)
+            go_to("pres_menu")
 
     with col2:
+        inter_desc = "생기부 PDF 기반 모의면접."
+        if st.session_state.user_plan == "free":
+            inter_desc += " <br><span style='color:#F59E0B; font-size:0.8rem;'>⚠️ Free 플랜: 상세 레포트 미제공</span>"
+        else:
+            inter_desc += " <br><span style='color:#3B82F6; font-size:0.8rem;'>✨ Pro 플랜: 상세 분석 레포트 제공</span>"
+
         st.markdown(
-            """
+            f"""
             <div class="spec-card">
                 <div class="spec-section-label">Track · Interview</div>
                 <div class="spec-title">🎓 생기부 기반 면접</div>
                 <div class="spec-subtitle">
-                    생기부 PDF를 기반으로 실제 면접처럼 질문에 답하고, 질문별 평가를 받아보세요.
+                    {inter_desc}
                 </div>
                 <div style="font-size: 0.85rem; color: #6B7280; margin-top: 1rem;">
                     · 생기부 맞춤형 질문 10개 생성<br>
@@ -256,10 +315,9 @@ elif st.session_state.step == "main_menu":
             """,
             unsafe_allow_html=True,
         )
-        # [변경] 바로 이동하지 않고 next_dest 저장 후 pricing으로 이동
         if st.button("면접 트랙 시작하기", key="go_inter", use_container_width=True):
             st.session_state.next_dest = "inter_upload"
-            go_to("pricing")
+            go_to("inter_upload")
 
     st.markdown("---")
 
@@ -310,7 +368,7 @@ elif st.session_state.step == "main_menu":
             unsafe_allow_html=True,
         )
 
-# [NEW] 요금제 선택 페이지
+# [NEW] 요금제 선택 페이지 (상점)
 elif st.session_state.step == "pricing":
     if st.session_state.user is None:
         st.warning("로그인 세션이 만료되었습니다.")
@@ -318,17 +376,19 @@ elif st.session_state.step == "pricing":
         st.rerun()
 
     # 상단 뒤로가기 버튼
-    if st.button("← 메인으로 돌아가기"):
-        go_to("main_menu")
+    if st.button("← 돌아가기"):
+        # next_dest가 있으면 그리로, 없으면 메인으로
+        target = st.session_state.get("next_dest", "main_menu")
+        go_to(target)
 
     st.markdown(
         """
         <div style="text-align: center; margin-bottom: 3rem; margin-top: 1rem;">
             <div class="spec-section-label">Pricing Plan</div>
-            <h1 style="color: #F9FAFB; font-size: 2.2rem; font-weight: 700;">나에게 맞는 플랜을 선택하세요</h1>
-            <p style="color: #9CA3AF;">합리적인 가격으로 최고의 AI 코칭 경험을 제공합니다.</p>
+            <h1 style="color: #F9FAFB; font-size: 2.2rem; font-weight: 700;">멤버십 플랜 변경</h1>
+            <p style="color: #9CA3AF;">현재 나의 플랜: <strong style="color:white;">{}</strong></p>
         </div>
-        """, 
+        """.format(st.session_state.user_plan.upper()), 
         unsafe_allow_html=True
     )
 
@@ -336,12 +396,17 @@ elif st.session_state.step == "pricing":
 
     # 1. Basic Plan
     with p_col1:
+        # 현재 플랜인지 확인
+        is_current = (st.session_state.user_plan == "free")
+        border_color = "#22C55E" if is_current else "#1F2937"
+        bg_color = "#020617"
+        
         st.markdown(
-            """
-            <div class="spec-card" style="height: 100%;">
+            f"""
+            <div class="spec-card" style="height: 100%; border-color: {border_color};">
                 <div class="spec-title">🌱 Starter</div>
                 <div class="spec-price-text">Free</div>
-                <div class="spec-subtitle">기본적인 AI 코칭을 체험해보고 싶은 분들을 위한 플랜입니다.</div>
+                <div class="spec-subtitle">기본적인 AI 코칭 체험</div>
                 <hr style="border-color: #374151; margin: 1.5rem 0;">
                 <div style="color: #D1D5DB; font-size: 0.9rem; line-height: 2;">
                     ✅ 일 3회 대본 생성<br>
@@ -353,20 +418,30 @@ elif st.session_state.step == "pricing":
             """,
             unsafe_allow_html=True,
         )
-        if st.button("무료로 시작하기", key="plan_basic", use_container_width=True):
-            st.success("Starter 플랜으로 시작합니다.")
-            # 원래 가려던 곳으로 이동
-            go_to(st.session_state.next_dest)
+        
+        if is_current:
+            st.button("현재 이용 중", key="plan_basic_active", disabled=True, use_container_width=True)
+        else:
+            if st.button("Starter로 변경", key="plan_basic", use_container_width=True):
+                st.session_state.user_plan = "free"
+                st.toast("Starter 플랜으로 변경되었습니다.", icon="✅")
+                time.sleep(1)
+                st.rerun()
 
     # 2. Pro Plan (Highlight)
     with p_col2:
+        is_current = (st.session_state.user_plan == "pro")
+        card_class = "spec-card-highlight" if not is_current else "spec-card" # 현재 사용중이면 하이라이트 좀 뺄수도 있지만 여기선 유지
+        # 현재 사용중이면 테두리를 녹색으로 강조
+        style_extra = f"border: 2px solid #22C55E;" if is_current else ""
+        
         st.markdown(
-            """
-            <div class="spec-card-highlight" style="height: 100%; position: relative;">
+            f"""
+            <div class="{card_class}" style="height: 100%; position: relative; {style_extra}">
                 <div style="position: absolute; top: -12px; right: 20px; background: #3B82F6; color: white; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600;">POPULAR</div>
                 <div class="spec-title" style="color: #60A5FA;">🚀 Pro</div>
                 <div class="spec-price-text">₩ 9,900 <span class="spec-price-period">/ mo</span></div>
-                <div class="spec-subtitle">취업 준비와 발표 연습에 집중하고 싶은 분들에게 최적화된 플랜입니다.</div>
+                <div class="spec-subtitle">취업 준비와 발표 연습에 최적화</div>
                 <hr style="border-color: #3B82F6; margin: 1.5rem 0; opacity: 0.3;">
                 <div style="color: #E5E7EB; font-size: 0.9rem; line-height: 2;">
                     ✅ <strong>무제한</strong> 대본 생성<br>
@@ -378,11 +453,16 @@ elif st.session_state.step == "pricing":
             """,
             unsafe_allow_html=True,
         )
-        if st.button("Pro 플랜 구독하기", key="plan_pro", type="primary", use_container_width=True):
-            st.balloons()
-            st.success("Pro 플랜이 활성화되었습니다!")
-            # 1초 뒤 이동 혹은 바로 이동 (여기선 바로 이동)
-            go_to(st.session_state.next_dest)
+        
+        if is_current:
+            st.button("현재 이용 중", key="plan_pro_active", disabled=True, use_container_width=True)
+        else:
+            if st.button("Pro 플랜 구독하기", key="plan_pro", type="primary", use_container_width=True):
+                st.balloons()
+                st.session_state.user_plan = "pro"
+                st.toast("Pro 플랜이 활성화되었습니다!", icon="🚀")
+                time.sleep(1.5)
+                st.rerun()
 
     # 3. Enterprise Plan
     with p_col3:
@@ -391,7 +471,7 @@ elif st.session_state.step == "pricing":
             <div class="spec-card" style="height: 100%;">
                 <div class="spec-title">🏢 Enterprise</div>
                 <div class="spec-price-text">Contact</div>
-                <div class="spec-subtitle">학교, 학원 등 단체 교육을 위한 관리자 기능 포함 플랜입니다.</div>
+                <div class="spec-subtitle">학교/단체 교육용 관리자 기능</div>
                 <hr style="border-color: #374151; margin: 1.5rem 0;">
                 <div style="color: #D1D5DB; font-size: 0.9rem; line-height: 2;">
                     ✅ Pro 기능 전체 포함<br>
@@ -405,12 +485,10 @@ elif st.session_state.step == "pricing":
         )
         if st.button("문의하기", key="plan_ent", use_container_width=True):
             st.info("관리자에게 문의가 전송되었습니다.")
-            # Enterprise는 문의 후 이동한다고 가정하거나, 그냥 둘러보기용으로 이동
-            go_to(st.session_state.next_dest)
 
 
 # -----------------------------
-# 기존 기능 페이지 라우팅 (변경 없음)
+# 기존 기능 페이지 라우팅
 # -----------------------------
 elif st.session_state.step == "pres_menu":
     if st.session_state.user is None:
@@ -445,6 +523,11 @@ elif st.session_state.step == "inter_upload":
         st.warning("로그인 후 이용할 수 있습니다.")
         st.session_state.step = "login"
         st.rerun()
+    
+    # [제한 로직 예시] Free 유저는 5개만 생성한다고 알림 (실제 로직은 render 함수 안에서 처리 필요)
+    if st.session_state.user_plan == "free":
+        st.info("💡 Free 플랜 이용 중: 면접 질문이 5개로 제한되며, 상세 분석 리포트가 간소화됩니다.")
+    
     render_interview_upload_page(go_to)
 
 elif st.session_state.step == "inter_practice":
