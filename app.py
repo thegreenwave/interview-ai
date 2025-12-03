@@ -15,6 +15,10 @@ st.set_page_config(page_title="Spec-trum Uni", page_icon="🎓", layout="wide")
 
 password = st.text_input(" 접속 비밀번호를 입력하세요", type="password")
 
+if password != "0601": 
+    st.warning("비밀번호가 틀렸습니다. 접속할 수 없습니다.")
+    st.stop()  
+
 if "OPENAI_API_KEY" in st.secrets:
     os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 else:
