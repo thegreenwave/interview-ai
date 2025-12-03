@@ -270,16 +270,6 @@ elif st.session_state.step == "main_menu":
                 </div>
                 <div class="spec-hero-left-subtitle">
                     발표와 면접을 위한 AI 코칭을 하나의 서비스에서 제공합니다.
-                    \n녹음만 하면, 내용·발음·진행 속도까지 자동으로 분석하고
-                    질문별 피드백을 누적 레포트로 정리해 드립니다.
-                </div>
-            </div>
-            <div class="spec-hero-right spec-card-tight">
-                </div>
-                <div style="margin-top:0.5rem;">
-                    <div class="spec-mini-metric-label">추천 시작</div>
-                    <div class="spec-mini-metric-value">발표 트랙 → 면접 트랙</div>
-                    <div class="spec-mini-metric-desc">먼저 말하기 감각을 익힌 후, 실제 질문으로 연습해 보세요.</div>
                 </div>
             </div>
         </div>
