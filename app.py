@@ -279,7 +279,7 @@ elif st.session_state.step == "main_menu":
             <div style="margin-bottom: 2rem;">
                 <div style="font-size: 0.9rem; color: #6B7280; margin-bottom: 0.5rem;">🎙 Spec-trum Pro · AI Speech & Interview Coach</div>
                 <div style="font-size: 2.2rem; font-weight: 700; color: #F9FAFB; line-height: 1.3;">
-                    한 번의 연습도,<br>실제 면접처럼.
+                    한 번의 연습도,<br>실제 환경처럼.
                 </div>
                 <div style="margin-top: 1rem; color: #9CA3AF;">
                     발표와 면접을 위한 AI 코칭을 하나의 서비스에서 제공합니다.
